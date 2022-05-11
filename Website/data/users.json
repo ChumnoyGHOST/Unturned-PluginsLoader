@@ -1,0 +1,20 @@
+{
+	"Users": [
+		{
+			"License": "XXXX-XXXX-XXXX-XXXX", 
+			"ServerIP": "127.0.0.1", 
+			"ServerPort": "27015", 
+			"AddressValidation": true,
+			"Plugins": [0, 1, 2, 3, 4], 
+			"DisabledPlugins": [2, 4] 
+		},
+		{
+			"License": "YYYY-YYYY-YYYY-YYYY", 
+			"ServerIP": "", 
+			"ServerPort": "", 
+			"AddressValidation": false,
+			"Plugins": [0, 1, 2], 
+			"DisabledPlugins": [0, 1] 
+		}
+	]
+}
