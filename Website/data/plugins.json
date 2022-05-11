@@ -1,0 +1,14 @@
+{
+	"Plugins": [
+		{
+			"ID": 0,
+			"Name":"PluginName",
+			"Base64":"Plugin encoded in Base64"
+		},
+		{
+			"ID": 1,
+			"Name": "PluginName",
+			"Base64": "Plugin encoded in Base64"
+		}
+	]
+}
