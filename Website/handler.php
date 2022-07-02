@@ -3,11 +3,11 @@
 	if(!empty($_POST)) {
 		$Config = json_decode(file_get_contents('data/config.json'), true);
 		$ServerLoaderVersion = filter_var($_POST['LoaderVersion'], FILTER_VALIDATE_REGEXP, array('options' => array('regexp'=>'/^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}$/')));
-		$ServerIP = filter_var($_POST['ServerIP'], FILTER_VALIDATE_REGEXP, array('options' => array('regexp'=>'/^[a-zA-Z0-9.:]{1,39}$/')));
+		$ServerIP = $_SERVER['REMOTE_ADDR'];
 		$ServerPort = filter_var($_POST['ServerPort'], FILTER_VALIDATE_REGEXP, array('options' => array('regexp'=>'/^[0-9]{1,5}$/')));
 		$License = filter_var($_POST['License'], FILTER_VALIDATE_REGEXP, array('options' => array('regexp'=>'/^[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}$/')));
 		$Response = array('ValidLoaderVersion' => false, 'ValidLicense' => false, 'ValidAddress' => false,'UserPluginsNames' => '', 'UserPlugins' => '');
-		if (!empty($ServerLoaderVersion) && !empty($ServerIP) && !empty($ServerPort) && !empty($License)) {
+		if (!empty($ServerLoaderVersion) && !empty($ServerPort) && !empty($License)) {
 			if ($ServerLoaderVersion == $Config["LoaderVersion"]) {
 				$Response['ValidLoaderVersion'] = true;
 				$Users = json_decode(file_get_contents('data/users.json'), true);
