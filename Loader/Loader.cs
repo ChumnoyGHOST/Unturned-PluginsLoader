@@ -15,34 +15,11 @@ namespace Ghost.PluginsLoader {
         public List<Models.Plugin> Plugins = new List<Models.Plugin>();
         WebClient WebClient = new WebClient();
         const string Handler = "https://localhost/loader/handler.php";
-        private string GetServerIP() {
-            string ServerIP = "null";
-            byte Attempt = 0;
-            bool Success = false;
-            while ((Attempt != 10) && !Success) {
-                try {
-                    ServerIP = WebClient.DownloadString("http://api.ipify.org");
-                    Success = true;
-                } catch (Exception) {
-                    Attempt++;
-                    Logger.Log(Translate("GetIP_Attempt", Attempt));
-                    Success = false;
-                }
-                if (Success) {
-                    Logger.Log(Translate("GetIP_Success"));
-                }
-                if (Attempt == 10) {
-                    Logger.Log(Translate("GetIP_Error"));
-                }
-            }
-            return ServerIP;
-        }
-        private string GetServerResponse(string LoaderVersion, string License, string ServerIP, string ServerPort) {
+        private string GetServerResponse(string LoaderVersion, string License, string ServerPort) {
             string Response = "null";
             System.Collections.Specialized.NameValueCollection RequestData = new System.Collections.Specialized.NameValueCollection() {
                 {"LoaderVersion", LoaderVersion},
                 {"License", License},
-                {"ServerIP", ServerIP},
                 {"ServerPort", ServerPort},
             };
             byte Attempt = 0;
@@ -72,72 +49,65 @@ namespace Ghost.PluginsLoader {
             if (Configuration.Instance.LoaderEnabled) {
                 Logger.Log(Translate("LoaderStatus_Enabled"));
                 Logger.Log(Translate("LoadingLog"));
-                string ServerIP = GetServerIP();
                 List<Models.Plugin> ListPlugins = new List<Models.Plugin>();
-                if (ServerIP != "null") {
-                    string ServerResponse = GetServerResponse(Assembly.GetExecutingAssembly().GetName().Version.ToString(), Configuration.Instance.License, ServerIP, SDG.Unturned.Provider.port.ToString());
-                    if (ServerResponse != "null") {
-                        Newtonsoft.Json.Linq.JObject Object = Newtonsoft.Json.Linq.JObject.Parse(ServerResponse);
-                        if ((bool)Object["ValidLoaderVersion"]) {
-                            Logger.Log(Translate("Validation_LoaderVersion_Success"));
-                            if ((bool)Object["ValidLicense"]) {
-                                Logger.Log(Translate("Validation_License_Success"));
-                                if ((bool)Object["ValidAddress"]) {
-                                    Logger.Log(Translate("Validation_Address_Success"));
-                                    Array UserPluginsNames = Object["UserPluginsNames"].ToString().Split(',');
-                                    Logger.Log(Translate("LoadedPlugins"));
-                                    foreach (string PluginName in UserPluginsNames) {
-                                        Logger.Log(" " + PluginName);
-                                    }
-                                    var PluginsBase64 = Object["UserPlugins"].ToString().Split(',');
-                                    foreach (var PluginBase64 in PluginsBase64) {
-                                        var RawPlugin = Convert.FromBase64String(PluginBase64);
-                                        if (RawPlugin.Length <= 0) continue;
-                                        try {
-                                            var PluginAssembly = Assembly.Load(RawPlugin);
-                                            List<Type> Types = RocketHelper.GetTypesFromInterface(PluginAssembly, "IRocketPlugin");
-                                            foreach (var Item in Types) {
-                                                GameObject gameObject = new GameObject(Item.Name, new Type[] {Item});
-                                                DontDestroyOnLoad(gameObject);
-                                                ListPlugins.Add(new Models.Plugin(gameObject));
-                                            }
-                                        } catch (Exception) {
-                                            Logger.Log(Translate("UnknownError"));
-                                        }
-                                    }
-                                    Plugins = ListPlugins;
+                string ServerResponse = GetServerResponse(Assembly.GetExecutingAssembly().GetName().Version.ToString(), Configuration.Instance.License, SDG.Unturned.Provider.port.ToString());
+                if (ServerResponse != "null") {
+                    Newtonsoft.Json.Linq.JObject Object = Newtonsoft.Json.Linq.JObject.Parse(ServerResponse);
+                    if ((bool)Object["ValidLoaderVersion"]) {
+                        Logger.Log(Translate("Validation_LoaderVersion_Success"));
+                        if ((bool)Object["ValidLicense"]) {
+                            Logger.Log(Translate("Validation_License_Success"));
+                            if ((bool)Object["ValidAddress"]) {
+                                Logger.Log(Translate("Validation_Address_Success"));
+                                Array UserPluginsNames = Object["UserPluginsNames"].ToString().Split(',');
+                                Logger.Log(Translate("LoadedPlugins"));
+                                foreach (string PluginName in UserPluginsNames) {
+                                    Logger.Log(" " + PluginName);
+                                }
+                                var PluginsBase64 = Object["UserPlugins"].ToString().Split(',');
+                                foreach (var PluginBase64 in PluginsBase64) {
+                                    var RawPlugin = Convert.FromBase64String(PluginBase64);
+                                    if (RawPlugin.Length <= 0) continue;
                                     try {
-                                        var Type = R.Plugins.GetType();
-                                        var Field = Type.GetField("plugins", BindingFlags.NonPublic | BindingFlags.Static);
-                                        if (Field == null) return;
-                                        var RocketPlugins = Field.GetValue(R.Plugins) as List<GameObject>;
-                                        foreach (var PluginFromList in ListPlugins) {
-                                            RocketPlugins.Add(PluginFromList.GameObject);
+                                        var PluginAssembly = Assembly.Load(RawPlugin);
+                                        List<Type> Types = RocketHelper.GetTypesFromInterface(PluginAssembly, "IRocketPlugin");
+                                        foreach (var Item in Types) {
+                                            GameObject gameObject = new GameObject(Item.Name, new Type[] {Item});
+                                            DontDestroyOnLoad(gameObject);
+                                            ListPlugins.Add(new Models.Plugin(gameObject));
                                         }
-                                        Field.SetValue(R.Plugins, RocketPlugins);
                                     } catch (Exception) {
                                         Logger.Log(Translate("UnknownError"));
                                     }
-                                    Logger.Log(Translate("Operations_Completion"));
-                                } else {
-                                    Logger.Log(Translate("Validation_Address_Error"));
-                                    Logger.Log(Translate("Operations_Termination"));
-                                    AllPluginsUnload();
-                                    UnloadPlugin();
                                 }
+                                Plugins = ListPlugins;
+                                try {
+                                    var Type = R.Plugins.GetType();
+                                    var Field = Type.GetField("plugins", BindingFlags.NonPublic | BindingFlags.Static);
+                                    if (Field == null) return;
+                                    var RocketPlugins = Field.GetValue(R.Plugins) as List<GameObject>;
+                                    foreach (var PluginFromList in ListPlugins) {
+                                        RocketPlugins.Add(PluginFromList.GameObject);
+                                    }
+                                    Field.SetValue(R.Plugins, RocketPlugins);
+                                } catch (Exception) {
+                                    Logger.Log(Translate("UnknownError"));
+                                }
+                                Logger.Log(Translate("Operations_Completion"));
                             } else {
-                                Logger.Log(Translate("Validation_License_Error"));
+                                Logger.Log(Translate("Validation_Address_Error"));
                                 Logger.Log(Translate("Operations_Termination"));
                                 AllPluginsUnload();
                                 UnloadPlugin();
                             }
                         } else {
-                            Logger.Log(Translate("Validation_LoaderVersion_Error"));
+                            Logger.Log(Translate("Validation_License_Error"));
                             Logger.Log(Translate("Operations_Termination"));
                             AllPluginsUnload();
                             UnloadPlugin();
                         }
                     } else {
+                        Logger.Log(Translate("Validation_LoaderVersion_Error"));
                         Logger.Log(Translate("Operations_Termination"));
                         AllPluginsUnload();
                         UnloadPlugin();
