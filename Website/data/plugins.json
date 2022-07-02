@@ -2,11 +2,11 @@
 	"Plugins": [
 		{
 			"ID": 0,
-			"Name":"PluginName"
+			"Name":"ExamplePluginFile"
 		},
 		{
 			"ID": 1,
-			"Name": "PluginName"
+			"Name": "// AnotherPlugin"
 		}
 	]
 }
