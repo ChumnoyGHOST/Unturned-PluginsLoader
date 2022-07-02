@@ -26,9 +26,11 @@
 								foreach ($Plugins['Plugins'] as $Plugin) {
 									if ($Plugin['ID'] == $ID) {
 										if ($FirstPluginAdded) {
+											$Plugin['Base64'] = base64_encode(file_get_contents('plugins/'.$Plugin['Name'].'.dll'));
 											$Response['UserPluginsNames'] .= ','.$Plugin['Name'];
 											$Response['UserPlugins'] .= ','.$Plugin['Base64'];
 										} else {
+											$Plugin['Base64'] = base64_encode(file_get_contents('plugins/'.$Plugin['Name'].'.dll'));
 											$Response['UserPluginsNames'] .= $Plugin['Name'];
 											$Response['UserPlugins'] .= $Plugin['Base64'];
 											$FirstPluginAdded = true;
