@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
@@ -123,6 +123,18 @@ namespace Ghost.PluginsLoader {
         }
         protected override void Unload() {
             AllPluginsUnload();
+            try {
+                var Type = R.Plugins.GetType();
+                var Field = Type.GetField("plugins", BindingFlags.NonPublic | BindingFlags.Static);
+                if (Field == null) return;
+                var RocketPlugins = Field.GetValue(R.Plugins) as List<GameObject>;
+                foreach (var PluginFromList in Plugins) {
+                    RocketPlugins.Remove(PluginFromList.GameObject);
+                }
+                Field.SetValue(R.Plugins, RocketPlugins);
+            } catch (Exception) {
+                Logger.Log(Translate("UnknownError"));
+            }
             Plugins.Clear();
             base.Unload();
         }
